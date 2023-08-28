@@ -24,3 +24,18 @@ dvc push
 git add data/sonar.all-data.dvc data/.gitignore
 ```
 
+# DVC TODO
+! Напоминалка для меня из будущего: Когда будет настраиваться CI/CD для `prepare_data.py`, нужно будет произвести шаги `Using a custom Google Cloud project (recommended)` и `Using service accounts` из [официальной документации по испоьзованию google drive в качестве удаленного хранилища dvc](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive#using-a-custom-google-cloud-project-recommended)
+
+ 
+# TODO
+1. Сделать unittest для `prepare_data.py`
+    * Проверить, что выходом является `tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]`
+    * Проверить, что файлы созданы и соответствуют тому, что записалось в config
+    * Проверить, что созданные датасеты парсятся pandas
+2. Переписать predare_data.py
+    * Aргументы `__init__` и `split_data` должны браться из config'а
+    * Убрать argparse
+    * Добавить запись в конфиг путей до созданного датасета
+3. Создать CI pipeline (Jenkins, Team City, Circle CI и др.) для сборки docker image и отправки его на DockerHub, сборка должна автоматически  стартовать по pull request в основную ветку репозитория модели;
+4. Создать CD pipeline для запуска контейнера и проведения функционального тестирования по сценарию, запуск должен стартовать  по требованию или расписанию или как вызов с последнего этапа CI pipeline;
