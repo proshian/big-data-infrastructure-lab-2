@@ -10,7 +10,7 @@
 
 На данный момент DVC используется для версионирования файла `data/sonar.all-data`.
 
-В качестве remote хранилища была создана папка на google drive с id `1lh_wUfw88ceVCL04UtT0e0zQCoFpqLxY`. Всем в интернете был дан доступ на чтение google drive папки, чтобы была возможность получить соответствующую версию данных с помощью команды `dvc get . data/sonar.all-data`.
+В качестве remote хранилища была создана папка на google drive с id `1lh_wUfw88ceVCL04UtT0e0zQCoFpqLxY`. Всем в интернете был дан доступ на чтение google drive папки, чтобы у всех работали команды `dvc get . data/sonar.all-data` и `dvc pull`.
 
 DVC команды, которые были использованы для добавления удаленного хранилища и сохранения на нем первой версии `data/sonar.all-data`
 
