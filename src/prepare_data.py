@@ -2,7 +2,8 @@ import os
 import argparse
 import sys
 import traceback
-from typing import Optional, Tuple
+import configparser
+from typing import Dict, Tuple, Optional, Any
 
 import pandas as pd
 import numpy as np
@@ -11,19 +12,69 @@ from sklearn.model_selection import train_test_split
 from logger import Logger
 
 
-def parse_args() -> argparse.Namespace:
+CONFIG_NAME = "config.ini"
+SCRIPT_PARAMS_NAME = "PREPARE_DATA_PARAMETERS"
+
+
+def get_default_args() -> Dict[str, str]:
+    config = configparser.ConfigParser()
+    config.read(CONFIG_NAME)
+    return config[SCRIPT_PARAMS_NAME]
+
+def update_configfile(args, logger) -> None:
+    config = configparser.ConfigParser()
+    if SCRIPT_PARAMS_NAME not in config:
+        logger.info(f"{SCRIPT_PARAMS_NAME} not in {CONFIG_NAME}")
+        config[SCRIPT_PARAMS_NAME] = {}
+    for arg in vars(args):
+        config[SCRIPT_PARAMS_NAME][arg] = str(getattr(args, arg))
+    
+    with open(CONFIG_NAME, 'w') as configfile:
+        config.write(configfile)
+
+def check_all_args_non_null(args, logger):
+    for arg in vars(args):
+        if getattr(args, arg) is None:
+            logger.error(f"Argument {arg} is not specified")
+            return False
+    logger.info("All arguments specified")
+    return True
+
+
+def parse_args(logger) -> argparse.Namespace:
+    """
+    Parses arguments
+    
+    Defaults are taken from config. If defaults are not present in config,
+    exit with error.
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--orig_data_filename", "-d", type=str, default=r"./data/sonar.all-data")
-    parser.add_argument("--test_size", "-t", type=float, default=0.2)
-    parser.add_argument("--random_state", "-r", type=int, default=42)
-    parser.add_argument("--save_path", "-s", type=str, default=r"./data")
-    return parser.parse_args()
+    parser.add_argument("--orig_data_filename", "-d", type=str)
+    parser.add_argument("--test_size", "-t", type=float)
+    parser.add_argument("--random_state", "-r", type=int)
+    parser.add_argument("--save_path", "-s", type=str)
+
+    if os.path.exists(CONFIG_NAME):
+        defaults = get_default_args()
+        parser.set_defaults(**defaults)
+    
+    args = parser.parse_args()
+
+    if not check_all_args_non_null(args, logger):
+        sys.exit(1)
+    
+    for arg in vars(args):
+        logger.debug(f"type(args.{arg}) = {type(getattr(args, arg))}")
+    
+    update_configfile(args, logger)
+
+    return args
 
 
 class DataPreparer:
-    def __init__(self, orig_data_filename, save_path) -> None:
-        logger_getter = Logger(show=True)
-        self.logger = logger_getter.get_logger(__name__)
+    def __init__(self, orig_data_filename, save_path, logger) -> None:
+        
+        self.logger = logger
 
         self.orig_data_filename = orig_data_filename
         self.save_path = save_path
@@ -111,6 +162,8 @@ class DataPreparer:
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    data_preparer = DataPreparer(args.orig_data_filename, args.save_path)
+    logger_getter = Logger(show=True)
+    logger = logger_getter.get_logger(__name__)
+    args = parse_args(logger)
+    data_preparer = DataPreparer(args.orig_data_filename, args.save_path, logger)
     data_preparer.split_data(test_size=args.test_size, random_state=args.random_state)
