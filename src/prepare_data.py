@@ -22,7 +22,7 @@ class ArgsParser:
     def __init__(self, logger):
         self.logger = logger
 
-    def _get_default_args(self) -> Dict[str, str]:
+    def get_default_args(self) -> Dict[str, str]:
         """
         Gets DataPreparer args from config file.
 
@@ -31,7 +31,16 @@ class ArgsParser:
         """
         config = configparser.ConfigParser()
         config.read(CONFIG_NAME)
-        return config[SCRIPT_PARAMS_NAME]
+        default_args = config[SCRIPT_PARAMS_NAME]
+        
+        result = {
+            "orig_data_filename": default_args["orig_data_filename"],
+            "test_size": float(default_args["test_size"]),
+            "random_state": int(default_args["random_state"]),
+            "save_path": default_args["save_path"]
+        }
+        
+        return result
 
     def _update_configfile(self, args) -> None:
         """
@@ -79,7 +88,7 @@ class ArgsParser:
         parser.add_argument("--save_path", "-s", type=str)
 
         if os.path.exists(CONFIG_NAME):
-            defaults = self._get_default_args()
+            defaults = self.get_default_args()
             parser.set_defaults(**defaults)
         
         args = parser.parse_args()
