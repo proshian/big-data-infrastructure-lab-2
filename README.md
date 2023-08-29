@@ -29,13 +29,10 @@ git add data/sonar.all-data.dvc data/.gitignore
 
  
 # TODO
-1. Сделать unittest для `prepare_data.py`
-    * Проверить, что выходом является `tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]`
+1. Дополнить unittest для `prepare_data.py`
     * Проверить, что файлы созданы и соответствуют тому, что записалось в config
     * Проверить, что созданные датасеты парсятся pandas
 2. Переписать predare_data.py
-    * Aргументы `__init__` и `split_data` должны браться из config'а
-    * Убрать argparse
-    * Добавить запись в конфиг путей до созданного датасета
+    * Добавить запись в конфиг пути до созданного датасета
 3. Создать CI pipeline (Jenkins, Team City, Circle CI и др.) для сборки docker image и отправки его на DockerHub, сборка должна автоматически  стартовать по pull request в основную ветку репозитория модели;
 4. Создать CD pipeline для запуска контейнера и проведения функционального тестирования по сценарию, запуск должен стартовать  по требованию или расписанию или как вызов с последнего этапа CI pipeline;
