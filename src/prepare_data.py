@@ -45,8 +45,11 @@ def parse_args(logger) -> argparse.Namespace:
     """
     Parses arguments
     
-    Defaults are taken from config. If defaults are not present in config,
-    exit with error.
+    All arguments are optional and default to config values.
+    If an argument is not provided and it cannot be found in
+    `config.ini`, an error is logged and program exits with code 1.
+
+    After the arguments are parsed `config.ini` is updated.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--orig_data_filename", "-d", type=str)
