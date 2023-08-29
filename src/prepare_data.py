@@ -15,68 +15,88 @@ from logger import Logger
 CONFIG_NAME = "config.ini"
 SCRIPT_PARAMS_NAME = "PREPARE_DATA_PARAMETERS"
 
+class ArgsParser:
+    """
+    Encapsulates and groups together parse_args method and helper methods.
+    """
+    def __init__(self, logger):
+        self.logger = logger
 
-def get_default_args() -> Dict[str, str]:
-    config = configparser.ConfigParser()
-    config.read(CONFIG_NAME)
-    return config[SCRIPT_PARAMS_NAME]
+    def _get_default_args(self) -> Dict[str, str]:
+        """
+        Gets DataPreparer args from config file.
 
-def update_configfile(args, logger) -> None:
-    config = configparser.ConfigParser()
-    config.read(CONFIG_NAME)
+        Args from previous run are saved in config file. If an arg was not
+        specified as a command line argument it is taken from config file.
+        """
+        config = configparser.ConfigParser()
+        config.read(CONFIG_NAME)
+        return config[SCRIPT_PARAMS_NAME]
 
-    if SCRIPT_PARAMS_NAME not in config:
-        logger.info(f"{SCRIPT_PARAMS_NAME} not in {CONFIG_NAME}")
-        config[SCRIPT_PARAMS_NAME] = {}
+    def _update_configfile(self, args) -> None:
+        """
+        Saves DataPreparer args to config file.
+        """
+        config = configparser.ConfigParser()
+        config.read(CONFIG_NAME)
+
+        if SCRIPT_PARAMS_NAME not in config:
+            self.logger.info(f"{SCRIPT_PARAMS_NAME} not in {CONFIG_NAME}")
+            config[SCRIPT_PARAMS_NAME] = {}
+            
+        for arg in vars(args):
+            config[SCRIPT_PARAMS_NAME][arg] = str(getattr(args, arg))
         
-    for arg in vars(args):
-        config[SCRIPT_PARAMS_NAME][arg] = str(getattr(args, arg))
-    
-    with open(CONFIG_NAME, 'w') as configfile:
-        config.write(configfile)
+        with open(CONFIG_NAME, 'w') as configfile:
+            config.write(configfile)
 
-def check_all_args_non_null(args, logger):
-    for arg in vars(args):
-        if getattr(args, arg) is None:
-            logger.error(f"Argument {arg} is not specified")
-            return False
-    logger.info("All arguments specified")
-    return True
-
-
-def parse_args(logger) -> argparse.Namespace:
-    """
-    Parses arguments
-    
-    All arguments are optional and default to config values.
-    If an argument is not provided and it cannot be found in
-    `config.ini`, an error is logged and program exits with code 1.
-
-    After the arguments are parsed `config.ini` is updated.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--orig_data_filename", "-d", type=str)
-    parser.add_argument("--test_size", "-t", type=float)
-    parser.add_argument("--random_state", "-r", type=int)
-    parser.add_argument("--save_path", "-s", type=str)
-
-    if os.path.exists(CONFIG_NAME):
-        defaults = get_default_args()
-        parser.set_defaults(**defaults)
-    
-    args = parser.parse_args()
-
-    if not check_all_args_non_null(args, logger):
-        sys.exit(1)
-    
-    for arg in vars(args):
-        logger.debug(f"type(args.{arg}) = {type(getattr(args, arg))}")
-    
-    update_configfile(args, logger)
-
-    return args
+    def _check_all_args_non_null(self, args):
+        """
+        Checks that all args values are not None after parsing
+        """
+        for arg in vars(args):
+            if getattr(args, arg) is None:
+                self.logger.error(f"Argument {arg} is missing")
+                return False
+        self.logger.info("All arguments obtained")
+        return True
 
 
+    def parse_args(self) -> argparse.Namespace:
+        """
+        Parses arguments
+        
+        All arguments are optional and default to config values.
+        If an argument is not provided and it cannot be found in
+        `config.ini`, an error is logged and program exits with code 1.
+
+        After the arguments are parsed `config.ini` is updated.
+        """
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--orig_data_filename", "-d", type=str)
+        parser.add_argument("--test_size", "-t", type=float)
+        parser.add_argument("--random_state", "-r", type=int)
+        parser.add_argument("--save_path", "-s", type=str)
+
+        if os.path.exists(CONFIG_NAME):
+            defaults = self._get_default_args()
+            parser.set_defaults(**defaults)
+        
+        args = parser.parse_args()
+
+        if not self._check_all_args_non_null(args):
+            sys.exit(1)
+        
+        for arg in vars(args):
+            logger.debug(f"type(args.{arg}) = {type(getattr(args, arg))}")
+        
+        self._update_configfile(args)
+
+        return args
+
+
+# That's a class because there might be a more
+# sophisticated data obtain pipeline.
 class DataPreparer:
     def __init__(self, orig_data_filename, save_path, logger) -> None:
         
@@ -131,6 +151,7 @@ class DataPreparer:
         try:
             df = pd.read_csv(self.orig_data_filename, header=None)
         except FileNotFoundError:
+            # ! Возможно, лучше использовать аргумент exc_info=True
             self.logger.error(f"File {self.orig_data_filename} not found")
             self.logger.error(traceback.format_exc())
             sys.exit(1)
@@ -170,6 +191,7 @@ class DataPreparer:
 if __name__ == "__main__":
     logger_getter = Logger(show=True)
     logger = logger_getter.get_logger(__name__)
-    args = parse_args(logger)
+    args_parser = ArgsParser(logger)
+    args = args_parser.parse_args()
     data_preparer = DataPreparer(args.orig_data_filename, args.save_path, logger)
     data_preparer.split_data(test_size=args.test_size, random_state=args.random_state)
