@@ -23,9 +23,12 @@ def get_default_args() -> Dict[str, str]:
 
 def update_configfile(args, logger) -> None:
     config = configparser.ConfigParser()
+    config.read(CONFIG_NAME)
+
     if SCRIPT_PARAMS_NAME not in config:
         logger.info(f"{SCRIPT_PARAMS_NAME} not in {CONFIG_NAME}")
         config[SCRIPT_PARAMS_NAME] = {}
+        
     for arg in vars(args):
         config[SCRIPT_PARAMS_NAME][arg] = str(getattr(args, arg))
     
