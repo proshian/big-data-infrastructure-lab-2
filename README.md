@@ -65,6 +65,7 @@ dvc remote modify myremote --local gdrive_service_account_json_file_path path/to
 
 1. Сделать CI, который просто создает образ и пушит его в docker hub
 2. Сделать CD, который запускает контейнер, в котором происходит запись json'а с ключом от service аккаунта, и потом запускает тесты и скрипт prepare_data.py
+    * планирую воспользоваться [кодированием base64 для хранения json'а в github secrets](https://medium.com/@verazabeida/using-json-in-your-github-actions-when-authenticating-with-gcp-856089db28cf)
 
 1. Дополнить unittest для `prepare_data.py`
     * Проверить, что файлы созданы и соответствуют тому, что записалось в config
