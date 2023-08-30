@@ -58,11 +58,14 @@ python src/unit_tests/test_prepare_data.py
 После записи json'а с ключом должны производиться команды
 ```bash
 dvc remote modify myremote gdrive_use_service_account true
-dvc remote modify myremote --local \
-              gdrive_service_account_json_file_path path/to/file.json
+dvc remote modify myremote --local gdrive_service_account_json_file_path path/to/file.json
 ```
 
 ## TODO
+
+1. Сделать CI, который просто создает образ и пушит его в docker hub
+2. Сделать CD, который запускает контейнер, в котором происходит запись json'а с ключом от service аккаунта, и потом запускает тесты и скрипт prepare_data.py
+
 1. Дополнить unittest для `prepare_data.py`
     * Проверить, что файлы созданы и соответствуют тому, что записалось в config
     * Проверить, что созданные датасеты парсятся pandas
