@@ -10,7 +10,7 @@
 
 На данный момент DVC используется для версионирования файла `data/sonar.all-data`.
 
-В качестве remote хранилища была создана папка на google drive с id `1lh_wUfw88ceVCL04UtT0e0zQCoFpqLxY`. Всем в интернете был дан доступ на чтение google drive папки, чтобы у всех работали команды `dvc get . data/sonar.all-data` и `dvc pull`.
+В качестве remote хранилища была создана папка на google drive с id `1lh_wUfw88ceVCL04UtT0e0zQCoFpqLxY`. Всем в интернете был дан доступ на чтение google drive папки, чтобы у всех работали команды `dvc get . data/sonar.all-data` и `dvc pull`. Однако, обе команды требуют аутентификации (dvc автоматически генерирует ссылку на Google OAuth2)
 
 DVC команды, которые были использованы для добавления удаленного хранилища и сохранения на нем первой версии `data/sonar.all-data`:
 
@@ -24,8 +24,7 @@ dvc push
 git add data/sonar.all-data.dvc data/.gitignore
 ```
 
-# DVC TODO
-! Напоминалка для меня из будущего: Когда будет настраиваться CI/CD для `prepare_data.py`, нужно будет произвести шаги `Using a custom Google Cloud project (recommended)` и `Using service accounts` из [официальной документации по испоьзованию google drive в качестве удаленного хранилища dvc](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive#using-a-custom-google-cloud-project-recommended)
+Для CI/CD был создан Google Cloud проект, в котором был создан service account. Service account'у были даны права на редактирование папки, являющейся remote хранилищем. Ключ от service accaunt'а был (будет) записан в github secrets. Более подробно с произведенной настройкой можно ознакомиться в [официальной документации](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive) (разделы `Using a custom Google Cloud project (recommended)` и `Using service accounts`)
 
  
 # TODO
