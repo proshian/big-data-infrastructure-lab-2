@@ -4,6 +4,7 @@ import sys
 import traceback
 import configparser
 from typing import Dict, Tuple, Optional, Any
+import logging  # To set logging level
 
 import pandas as pd
 import numpy as np
@@ -14,6 +15,7 @@ from logger import Logger
 
 CONFIG_NAME = "config.ini"
 SCRIPT_PARAMS_NAME = "PREPARE_DATA_PARAMETERS"
+
 
 class ArgsParser:
     """
@@ -26,21 +28,18 @@ class ArgsParser:
         """
         Gets DataPreparer args from config file.
 
-        Args from previous run are saved in config file. If an arg was not
+        Args from previous run are stored in config file. If an arg was not
         specified as a command line argument it is taken from config file.
         """
         config = configparser.ConfigParser()
         config.read(CONFIG_NAME)
         default_args = config[SCRIPT_PARAMS_NAME]
+
+        default_args_dict = {
+            default_arg: default_args[default_arg]
+            for default_arg in default_args}
         
-        result = {
-            "orig_data_filename": default_args["orig_data_filename"],
-            "test_size": float(default_args["test_size"]),
-            "random_state": int(default_args["random_state"]),
-            "save_path": default_args["save_path"]
-        }
-        
-        return result
+        return default_args_dict
 
     def _update_configfile(self, args) -> None:
         """
@@ -70,7 +69,6 @@ class ArgsParser:
         self.logger.info("All arguments obtained")
         return True
 
-
     def parse_args(self) -> argparse.Namespace:
         """
         Parses arguments
@@ -86,6 +84,12 @@ class ArgsParser:
         parser.add_argument("--test_size", "-t", type=float)
         parser.add_argument("--random_state", "-r", type=int)
         parser.add_argument("--save_path", "-s", type=str)
+        parser.add_argument(
+            "--log_level",
+            "-l",
+            type=str,
+            default="DEBUG",
+            choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
 
         if os.path.exists(CONFIG_NAME):
             defaults = self.get_default_args()
@@ -157,6 +161,12 @@ class DataPreparer:
         y_train: np.ndarray
         y_test: np.ndarray
         """
+        config = configparser.ConfigParser()
+        config.read(CONFIG_NAME)
+        if "SPLIT_DATA" not in config:
+            self.logger.info(f"{'SPLIT_DATA'} not in {CONFIG_NAME}")
+            config["SPLIT_DATA"] = {}
+
         try:
             df = pd.read_csv(self.orig_data_filename, header=None)
         except FileNotFoundError:
@@ -178,19 +188,25 @@ class DataPreparer:
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=random_state, stratify=y)
         
-        for data, name in zip([X_train, X_test, y_train, y_test], 
+        for data, data_kind in zip([X_train, X_test, y_train, y_test], 
                             ['X_train', 'X_test', 'y_train', 'y_test']):
             try:
-                file_path = os.path.join(self.save_path, f'{name}.csv')
+                file_path = os.path.join(self.save_path, f'{data_kind}.csv')
                 fmt = '%f'
                 if data.dtype == 'object':
                     fmt = '%s'
                 np.savetxt(file_path, data, delimiter=',', fmt=fmt)
-                self.logger.info(f"Saved {name} to {file_path}")
+                self.logger.info(f"Saved {data_kind} to {file_path}")
+                # add data_kind: file_path to config 
+                config["SPLIT_DATA"][data_kind] = file_path
+
             except Exception:
-                self.logger.error(f"Failed to save {name} to {file_path}")
+                self.logger.error(f"Failed to save {data_kind} to {file_path}")
                 self.logger.error(traceback.format_exc())
                 sys.exit(1)
+        
+        with open(CONFIG_NAME, 'w') as configfile:
+            config.write(configfile)
 
         self.logger.info("Train and test data are ready")                
 
@@ -200,7 +216,12 @@ class DataPreparer:
 if __name__ == "__main__":
     logger_getter = Logger(show=True)
     logger = logger_getter.get_logger(__name__)
+
     args_parser = ArgsParser(logger)
     args = args_parser.parse_args()
+
+    numeric_level = getattr(logging, args.log_level.upper(), None)
+    logger.setLevel(numeric_level)
+
     data_preparer = DataPreparer(args.orig_data_filename, args.save_path, logger)
     data_preparer.split_data(test_size=args.test_size, random_state=args.random_state)

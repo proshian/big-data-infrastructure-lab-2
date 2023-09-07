@@ -128,7 +128,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-Place data for non local DVC
+# Delete ./data folder except for .dvc files
 /data 
 !data/*.dvc
 
