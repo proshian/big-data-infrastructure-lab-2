@@ -128,7 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Place data for non local DVC
-# /data 
+Place data for non local DVC
+/data 
+!data/*.dvc
 
 secrets/
