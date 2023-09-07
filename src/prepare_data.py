@@ -34,11 +34,13 @@ class ArgsParser:
         config = configparser.ConfigParser()
         config.read(CONFIG_NAME)
         default_args = config[SCRIPT_PARAMS_NAME]
-
-        default_args_dict = {
-            default_arg: default_args[default_arg]
-            for default_arg in default_args}
         
+        default_args_dict: Dict[str, str] = {
+            d_arg: default_args[d_arg] for d_arg in default_args}
+
+        default_args_dict["random_state"] = int(default_args_dict["random_state"])
+        default_args_dict["test_size"] = float(default_args_dict["test_size"])
+
         return default_args_dict
 
     def _update_configfile(self, args) -> None:
