@@ -36,6 +36,13 @@ class TestDataPreparer(unittest.TestCase):
         
         # Можно еще проверить типы данных в массивах.
         # Но я еще не определился, метки будут строками или int'ами.
+
+    # ! To be implemented
+    # def test_split_data__determinism(self):
+    #     """
+    #     Checks that split_data output files are same after 1st and 2nd runs.
+    #     """
+        
         
 
 if __name__ == "__main__":

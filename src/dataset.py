@@ -1,7 +1,7 @@
 from collections import Counter
 
 import torch
-import pandas as pd  # for type hints
+import pandas as pd  # For type hints.
 
 
 class SonarDataset(torch.utils.data.Dataset):
@@ -21,12 +21,3 @@ class SonarDataset(torch.utils.data.Dataset):
     
     def get_classes_distribution(self):
         return Counter(map(lambda i: self.i2label[int(i)], self.y.numpy().flatten()))
-    
-
-def get_train_test_datasets(path_to_csv: str, test_size: float = 0.2, random_state: int = 42):
-    df = pd.read_csv(path_to_csv, index_col = False, header = None)
-    X = df.iloc[:, :-1]
-    y = df.iloc[:, -1]
-    train_dataset = SonarDataset(X_train, y_train)
-    test_dataset = SonarDataset(X_test, y_test)
-    return train_dataset, test_dataset
