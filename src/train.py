@@ -92,7 +92,7 @@ class Trainer:
 
 
     def train(self, n_epochs: int, plot_history: bool = False):
-        epoch_pbar = tqdm(range(n_epochs), position=0, leave = "True", desc='Epochs')
+        epoch_pbar = tqdm(range(n_epochs), position=0, leave = True, desc='Epochs')
         for _ in epoch_pbar:
             epoch_pbar_str = f'epoch {self.epoch} '
             for phase in self.phases:
@@ -106,8 +106,10 @@ class Trainer:
                     self.model.eval()
 
                 with torch.set_grad_enabled(phase == 'train'):
-                    batch_pbar = tqdm(self.dataloaders[phase], position=1, leave = "False",
-                        desc=f"E{self.epoch} {phase.upper()} Batches")
+                    batch_pbar = tqdm(self.dataloaders[phase], position=1, 
+                                      leave = False,
+                                      desc=f"E{self.epoch} {phase.upper()} " \
+                                      "Batches")
                     for X, y in batch_pbar:
                         X = X.to(self.device)
                         y = y.to(self.device)
@@ -188,7 +190,10 @@ class Trainer:
         #                     global_step = self.epoch)  # global_step=epoch * len(trainloader) + i)
         pass
 
-    def get_metrics(self, all_lables: List[float], all_preds_logits: List[np.ndarray[float]]) -> Dict[str, float]:
+    def get_metrics(self,
+                    all_lables: List[float],
+                    all_preds_logits: List[np.ndarray[float]]
+                    ) -> Dict[str, float]:
         preds = np.argmax(all_preds_logits, axis=1)
         return {
             'accuracy': accuracy_score(all_lables, preds),
@@ -272,7 +277,7 @@ if __name__ == "__main__":
     trainer = Trainer(
         model, optimizer, criterion, dataloaders, log_period = 5)
     
-    trainer.train(100)
+    trainer.train(80)
 
     model_file_name = 'mlp.pkl'
     
@@ -280,4 +285,4 @@ if __name__ == "__main__":
 
     torch.save(model, model_save_path)
 
-    trainer.plot_history()
+    # trainer.plot_history()
