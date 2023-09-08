@@ -127,7 +127,7 @@ class DataPreparer:
 
     def split_data(self,
                    df: Optional[pd.DataFrame] = None,
-                   test_size: float = 0.2,
+                   test_size: float = 0.25,
                    random_state: int = 42) -> Tuple[np.ndarray, ...]:
         """
         Splits dataset into train and test sets.

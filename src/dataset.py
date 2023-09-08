@@ -1,17 +1,20 @@
 from collections import Counter
 
 import torch
-import pandas as pd  # For type hints.
+import numpy as np  # For type hints.
 
 
 class SonarDataset(torch.utils.data.Dataset):
     i2label = ['R', 'M']
     label2i = {label: i for i, label in enumerate(i2label)}
 
-    def __init__(self, X: pd.DataFrame, labels: pd.DataFrame) -> None:
-        y_list = [self.label2i[label] for label in labels]
-        self.y = torch.tensor(y_list, dtype = torch.float32, requires_grad=False)
-        self.X = torch.tensor(X.values, dtype = torch.float32, requires_grad=False)
+    def __init__(self, X_csv_path: str, y_csv_path: str) -> None:
+        X = np.loadtxt(X_csv_path, delimiter=",", dtype=float)
+        y_strs = np.loadtxt(y_csv_path, delimiter=",", dtype=str)
+        y_list  = list(map(self.label2i.get, y_strs))
+        
+        self.y = torch.tensor(y_list, dtype = torch.long, requires_grad=False)
+        self.X = torch.tensor(X, dtype = torch.float32, requires_grad=False)
         
     def __len__(self):
         return len(self.y)
