@@ -15,6 +15,7 @@ from dataset import SonarDataset
 from logger import Logger
 from model import MlpSonarModel
 
+
 CONFIG_NAME = "config.ini"
 
 
@@ -215,7 +216,9 @@ class Trainer:
     
     def plot_history(self, figsize: Tuple[int, int] = (10, 5)):
         metric_names = self.phase_history_keys
-        fig, axs = plt.subplots(len(self.phases), len(metric_names), sharex=True, figsize=figsize, dpi=80)
+        fig, axs = plt.subplots(
+            len(self.phases), len(metric_names),
+            sharex=True, figsize=figsize, dpi=80)
         for i, phase in enumerate(self.phases):
             for j, metric in enumerate(metric_names):
                 axs[i, j].plot(self.history[phase][metric])
@@ -251,8 +254,16 @@ def get_dataloaders(train_batch_size: Optional[int] = None,
     return loaders
 
 
+# ! Спарсить аргументы командной строки. Дефолты берем из конфига.
+
+
+# Сохранить гиперпараметры
+# Сохранить модель в состоянии
+# Сохранить trainer в состоянии
+# Может быть, созранить dict trainer, model.
+
 if __name__ == "__main__":
-    expirements_dir = os.path.join(os.getcwd(), 'experiments')
+    expirements_dir = os.path.join('.', 'experiments')
 
     if not os.path.exists(expirements_dir):
         os.mkdir(expirements_dir)
@@ -261,8 +272,13 @@ if __name__ == "__main__":
 
     logger_getter = Logger(show=True)
     logger = logger_getter.get_logger(__name__)
+
+    model_name = 'mlp'
     
     dataloaders = get_dataloaders()
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_NAME)
 
     model_params = {
         'input_size': 60,
@@ -271,7 +287,8 @@ if __name__ == "__main__":
     }
 
     model = MlpSonarModel(**model_params)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    lr = 0.01
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
 
     trainer = Trainer(
@@ -279,10 +296,25 @@ if __name__ == "__main__":
     
     trainer.train(80)
 
-    model_file_name = 'mlp.pkl'
-    
-    model_save_path = os.path.join(os.getcwd(), 'experiments', model_file_name)
+    config_model_data = model_params.copy()
+    config_model_data['lr'] = lr
 
-    torch.save(model, model_save_path)
+
+    model_optimizer_criterion_dict_name = 'mlp_adam_ce'
+    save_path = os.path.join(
+        expirements_dir, model_optimizer_criterion_dict_name + '.pkl')
+    model_optimizer_criterion_dict = {
+        'model': model,
+        'criterion': criterion,
+        'optimier': optimizer
+    }
+    torch.save(model_optimizer_criterion_dict, save_path)
+
+    config_model_data['model_optimizer_loss_dict_path'] = save_path
+
+    config[model_name] = config_model_data
+
+    with open(CONFIG_NAME, 'w') as configfile:
+            config.write(configfile)
 
     # trainer.plot_history()
