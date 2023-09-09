@@ -1,5 +1,6 @@
 import configparser
 import os
+import sys
 from typing import Tuple, Optional, Dict, List
 
 import pandas as pd
@@ -91,6 +92,9 @@ class Trainer:
 
         self.best_val_loss = float('inf')
 
+        logger_getter = Logger(show=False, filename='trainer.log')
+        self.logger = logger_getter.get_logger(__name__ + '.model_training')
+        
 
     def train(self, n_epochs: int, plot_history: bool = False):
         epoch_pbar = tqdm(range(n_epochs), position=0, leave = True, desc='Epochs')
@@ -145,8 +149,11 @@ class Trainer:
                 for metric_name, metric_value in metrics.items():
                     self.history[phase][metric_name].append(metric_value)
 
-                if self.epoch % self.log_period == 0:
-                    self.log(phase, loss, metrics)
+                # ! I don't think I should log this.
+                # I can just save whol trainer state or history dict.
+                #
+                # if self.epoch % self.log_period == 0:
+                #     self.log(epoch_pbar_str)
                 
                 running_loss = 0
 
@@ -185,11 +192,13 @@ class Trainer:
         self.history = checkpoint['history']
         self.model.to(self.device)
     
-    def log(self, phase: str, loss: float, metrics: Dict[str, float]):
-        # writer.add_scalar('{phase} loss',
-        #                     loss,
-        #                     global_step = self.epoch)  # global_step=epoch * len(trainloader) + i)
-        pass
+    # def log(self, metrics_str: str):
+    #     # writer.add_scalar('{phase} loss',
+    #     #                     loss,
+    #     #                     global_step = self.epoch)  # global_step=epoch * len(trainloader) + i)
+    #     self.logger.info(
+    #         f"Epoch {self.epoch}. {metrics_str}
+    #     )
 
     def get_metrics(self,
                     all_lables: List[float],
@@ -253,22 +262,23 @@ def get_dataloaders(train_batch_size: Optional[int] = None,
 
     return loaders
 
+# except Exception:
+#             self.log.error(traceback.format_exc())
+#             sys.exit(1)
 
-# ! Спарсить аргументы командной строки. Дефолты берем из конфига.
+# model is ready
 
+    
 
-# Сохранить гиперпараметры
-# Сохранить модель в состоянии
-# Сохранить trainer в состоянии
-# Может быть, созранить dict trainer, model.
 
 if __name__ == "__main__":
+    torch.manual_seed(0)
+
     expirements_dir = os.path.join('.', 'experiments')
 
     if not os.path.exists(expirements_dir):
         os.mkdir(expirements_dir)
-
-    torch.manual_seed(0)
+   
 
     logger_getter = Logger(show=True)
     logger = logger_getter.get_logger(__name__)
@@ -280,21 +290,34 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(CONFIG_NAME)
 
+
     model_params = {
         'input_size': 60,
         'hidden_size': 40,
         'output_size': 2,
     }
-
     model = MlpSonarModel(**model_params)
+
     lr = 0.01
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
     criterion = torch.nn.CrossEntropyLoss()
 
-    trainer = Trainer(
-        model, optimizer, criterion, dataloaders, log_period = 5)
+    try:
+        trainer = Trainer(
+            model, optimizer, criterion, dataloaders, log_period = 5)
+        logger.info("Trainer created")
+    except:
+        logger.exception("Exception during trainer cretion")
+        sys.exit(1)
     
-    trainer.train(80)
+    n_epoches = 80
+    
+    try:
+        trainer.train(n_epoches)
+        logger.info(f"Training {model_name} complete")
+    except:
+        logger.exception("Exception during training {model_name}")
 
     config_model_data = model_params.copy()
     config_model_data['lr'] = lr
@@ -316,5 +339,7 @@ if __name__ == "__main__":
 
     with open(CONFIG_NAME, 'w') as configfile:
             config.write(configfile)
+    
+    logger.info(f"Saved trained model and other artifacts to {save_path}")
 
     # trainer.plot_history()
