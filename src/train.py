@@ -92,8 +92,8 @@ class Trainer:
 
         self.best_val_loss = float('inf')
 
-        logger_getter = Logger(show=False, filename='trainer.log')
-        self.logger = logger_getter.get_logger(__name__ + '.model_training')
+        # logger_getter = Logger(show=False, filename='trainer.log')
+        # self.logger = logger_getter.get_logger(__name__ + '.model_training')
         
 
     def train(self, n_epochs: int, plot_history: bool = False):
@@ -261,14 +261,6 @@ def get_dataloaders(train_batch_size: Optional[int] = None,
     }
 
     return loaders
-
-# except Exception:
-#             self.log.error(traceback.format_exc())
-#             sys.exit(1)
-
-# model is ready
-
-    
 
 
 if __name__ == "__main__":
