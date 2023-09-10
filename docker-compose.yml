@@ -5,6 +5,7 @@ services:
     command: >
       sh -c "python src/prepare_data.py &&
              python src/train.py &&
+             python src/functional_test.py &&
              coverage run src/unit_tests/test_prepare_data.py &&
              coverage report -m
       "
