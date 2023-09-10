@@ -1,9 +1,8 @@
 import configparser
 import os
 import sys
-from typing import Tuple, Optional, Dict, List
+from typing import Optional, Dict, List
 
-import pandas as pd
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 import torch
