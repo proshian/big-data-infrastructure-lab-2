@@ -129,7 +129,6 @@ dmypy.json
 .pyre/
 
 # Delete ./data folder except for .dvc files
-/data 
-!data/*.dvc
+# /data 
 
 secrets/
