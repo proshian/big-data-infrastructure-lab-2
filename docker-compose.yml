@@ -2,7 +2,13 @@ version: '3.8'
 services:
   app:
     build: .
-    command: bash -c "python src/prepare_data.py && python src/train.py && coverage run src/unit_tests/test_prepare_data.py && coverage report -m"
+    command: >
+      bash -c "
+        python src/prepare_data.py
+        && python src/train.py
+        && coverage run src/unit_tests/test_prepare_data.py
+        && coverage report -m
+      "
     ports:
       - 8000:8000
     image: proshian/mle-mines-vs-rocks:latest

@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, f1_score
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from dataset import SonarDataset
@@ -223,16 +223,16 @@ class Trainer:
         return running_loss / len(self.dataloaders['val'])
 
     
-    def plot_history(self, figsize: Tuple[int, int] = (10, 5)):
-        metric_names = self.phase_history_keys
-        fig, axs = plt.subplots(
-            len(self.phases), len(metric_names),
-            sharex=True, figsize=figsize, dpi=80)
-        for i, phase in enumerate(self.phases):
-            for j, metric in enumerate(metric_names):
-                axs[i, j].plot(self.history[phase][metric])
-                axs[i, j].set_title(f'{phase} {metric}')
-        plt.show()
+    # def plot_history(self, figsize: Tuple[int, int] = (10, 5)):
+    #     metric_names = self.phase_history_keys
+    #     fig, axs = plt.subplots(
+    #         len(self.phases), len(metric_names),
+    #         sharex=True, figsize=figsize, dpi=80)
+    #     for i, phase in enumerate(self.phases):
+    #         for j, metric in enumerate(metric_names):
+    #             axs[i, j].plot(self.history[phase][metric])
+    #             axs[i, j].set_title(f'{phase} {metric}')
+    #     plt.show()
 
 
 def get_dataloaders(train_batch_size: Optional[int] = None,
