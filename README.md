@@ -1,7 +1,7 @@
 # ЛР 1. Классический жизненный цикл разработки моделей машинного обучения
 
-![Здесь должен быть статус CI](https://github.com/proshian/big-data-infrastructure-lab-1/actions/workflows/CI.yml/badge.svg)
-![Здесь должен быть статус CD](https://github.com/proshian/big-data-infrastructure-lab-1/actions/workflows/CD.yml/badge.svg)
+![Здесь должен быть статус CI и CD](https://github.com/proshian/big-data-infrastructure-lab-1/actions/workflows/CI%20CD.yml/badge.svg)
+
 ## Данные
 
 В качестве датасета был использован [Connectionist Bench (Sonar, Mines vs. Rocks)](https://archive.ics.uci.edu/dataset/151/connectionist+bench+sonar+mines+vs+rocks). Датасет содержит 208 объектов, каждый из которых описывается 60 признаками. Признаки - амплитуды частот звукового сигнала, отраженного от объекта. Каждый объект принадлежит к одному из двух классов: `R` - камень, `M` - мина (металлический цилиндр).
