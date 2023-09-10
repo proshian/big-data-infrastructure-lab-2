@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - development
+      - ci-cd
   pull_request:
     branches:
       - main
@@ -68,8 +69,8 @@ jobs:
       - name: DVC PULL
         run: dvc pull
         
-      - name: Docker compose pull
+      - name: Pull with compose
         run: docker-compose pull
       
-      - name: Run scripts and tests
+      - name: Run tests
         run: docker-compose up --abort-on-container-exit
