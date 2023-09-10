@@ -35,18 +35,7 @@ def load_model(config, logger) -> torch.nn.Module:
     return model
 
 
-
-
-if __name__ == "__main__":
-    logger_getter = Logger(SHOW_LOG)
-    logger = logger_getter.get_logger(__name__)
-
-    config = configparser.ConfigParser()
-    config.read(CONFIG_NAME)
-
-
-    model = load_model(config, logger)
-    
+def functional_test(model, config, logger):
     tests_path = os.path.join('.', "tests")
     exp_path = os.path.join('.', "experiments")
     
@@ -83,3 +72,16 @@ if __name__ == "__main__":
             with open(os.path.join(exp_dir,"exp_config.yaml"), 'w') as exp_f:
                 yaml.safe_dump(exp_data, exp_f, sort_keys=False)
             shutil.copy(os.path.join(os.getcwd(), "logfile.log"), os.path.join(exp_dir,"exp_logfile.log"))
+
+
+if __name__ == "__main__":
+    logger_getter = Logger(SHOW_LOG)
+    logger = logger_getter.get_logger(__name__)
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_NAME)
+
+
+    model = load_model(config, logger)
+    
+    functional_test(model)

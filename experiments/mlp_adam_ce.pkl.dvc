@@ -1,0 +1,5 @@
+outs:
+- md5: b8d41b47e8802bcb11bfa4270ca9db85
+  size: 37117
+  hash: md5
+  path: mlp_adam_ce.pkl
