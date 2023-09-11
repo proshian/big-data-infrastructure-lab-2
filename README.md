@@ -10,7 +10,12 @@
 
 ## Модель
 
-В качестве модели был выбран многослойный [перцптрон с одним скрытым слоем](./src/model.py).
+В качестве модели был выбран [многослойный перцптрон с одним скрытым слоем](./src/model.py).
+
+Результат обучения:
+```
+Epochs: 100%|██████| 80/80 [00:01<00:00, 48.04it/s, epoch 79  train: accuracy: 0.923, f1_score: 0.922, loss: 0.409 val: accuracy: 0.827, f1_score: 0.819, loss: 0.507]
+```
 
 ## Скрипты
 
@@ -18,12 +23,45 @@
 
 Этот блокнот был переписан в виде множества скриптов, которые находятся в папке [src](./src)
 
-* [train.py](./src/train.py)
-* [logger.py](./src/logger.py)
-* [model.py](./src/model.py)
-* [prepare_data.py](./src/prepare_data.py)
-* [dataset.py](./src/dataset.py)
-* [functional_test.py](./src/functional_test.py)
+* [train.py](./src/train.py) - обучение модели
+* [logger.py](./src/logger.py) - определение класса Logger. Основной его метод - get_logger, который возвращает логгер с заданным именем. "Под капотом" вызывается logging.getLogger и производится настройка логгера.
+* [model.py](./src/model.py) - определение класса модели
+* [prepare_data.py](./src/prepare_data.py) - определение класса DataPreparer, основной метод которого - split_data, который разбивает данные на тренировочную и тестовую выборки и сохраняет путик ним в `config.ini`
+* [dataset.py](./src/dataset.py) - определение класса SonarDataset (наследник torch.utils.data.Dataset). Получает путь к X.csv и y.csv. При образении по индексу возвращает признаки и метки в виде torch.Tensor
+* [functional_test.py](./src/functional_test.py) - функциональное тестирование. Для каждого теста из [./tests/](./tests/) измеряет accuracy модели. Записывает в директории с названиями вида `./experiments/exp_{имя_теста_из_директория_tests}_{дата_и_время}` лог теста и yaml файл с параметрами модели использованной модели.
+
+## Unit тесты
+
+Unit тесты реализованы с помощью библиотеки `unittest`. Тесты находятся в директории [./src/unit_tests](./src/unit_tests). Некоторые проверки:
+
+* Детермнированность работы DataPreparer.split_data()
+* Детерменированность forward() модели 
+* Корректность типов данных всех элементов тренировочного и тестового датасетов
+
+### Результаты тестирования
+
+```
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+src\dataset.py                           18      2    89%   20, 26
+src\logger.py                            26      0   100%
+src\model.py                              7      0   100%
+src\prepare_data.py                     111     49    56%   50-61, 67-72, 84-110, 169-170, 174-178, 205-208, 219-229
+src\unit_tests\test_dataset.py           25      0   100%
+src\unit_tests\test_model.py             23      0   100%
+src\unit_tests\test_prepare_data.py      29      0   100%
+-------------------------------------------------------------------
+TOTAL                                   239     51    79%
+```
+
+
+## Config.ini
+
+В [config.ini](./config.ini) хранятся:
+* Гиперпараметры модели. Записываются в скрипте [train.py](./src/train.py).
+* Пути к разделенным данным. Записываются в результате работы скрипта [prepare_data.py](./src/prepare_data.py). Используются в скрипте [train.py](./src/train.py)
+* Параметры скрипта [prepare_data.py](./src/prepare_data.py). Каждый параметр равен последнему значению, которое переданному через командную строку. Если параметр не был передан, то он берется из config.ini. Если очистить config.ini и не передавать параметры через командную строку, то скрипт [prepare_data.py](./src/prepare_data.py) закончится ошибкой.
+
 
 ## DVC
 
@@ -47,28 +85,42 @@ git add data/sonar.all-data.dvc data/.gitignore experiments/mlp_adam_ce.pkl expe
 Для CI/CD был создан Google Cloud проект, в котором был создан service account. Service account'у были даны права на редактирование папки, являющейся remote хранилищем. Json ключ от service accaunt'а был закодирован base64 и записан в github secrets.
 
 Более подробно с произведенной настройкой можно ознакомиться в [официальной документации](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive) (разделы `Using a custom Google Cloud project (recommended)` и `Using service accounts`)
- 
-## Docker
+
+
+## CI/CD
+
+CI и CD являются job'ами одного github actions workflow'а. Workflow находится в [.github/workflows/CI CD.yml](./.github/workflows/CI%20CD.yml). Workflow запускается при pull request'е в ветку main и при push'е в ветку development (push в ветку main запрещен). CD job запускается после успешного прохождения CI job.
 
 На этапе CI производится сборка docker образа и его отправка в docker hub. В docker образ не включены файлы, отслеживаемые dvc.
 
-На этапе CD на runner'е создается файл с ключом от google service аккаунта, производится dvc pull, который скачивает файл `data/sonar.all-data`, выполнются `docker-compose pull` и `docker-compose up`, в результате чего запускаются скрипты и тесты. Файл `data/sonar.all-data` оказывается доступен внутри контейнера благодаря volume монтированию.
+На этапе CD на runner'е создается файл с ключом от google service аккаунта, производится dvc pull, который скачивает файл `data/sonar.all-data`, выполнются `docker-compose pull` и `docker-compose up`, в результате чего запускаются скрипты и тесты (соответствующая комманда прописана в `docker-compose.yml`). Файл `data/sonar.all-data` оказывается доступен внутри контейнера благодаря volume монтированию.
 
 
-Локально можно собрать docker образ командой:
+## Docker
+[Docker образ на docker hub](https://hub.docker.com/r/proshian/mle-mines-vs-rocks/tags)
+
+
+## Локальный запуск
+
+Чтобы запустить проект локально необходимо:
+
+1. Склонировать репозиторий
+2. Установить dvc
+3. Установить docker
+4. Получить docker образ либо собрав его локально:
 
 ```bash
-docker build -t proshian/bd1 .
+docker build -t proshian/mle-mines-vs-rocks:latest .
 ```
-
-Далее произвести dvс pull:
+либо скачав его с docker hub:
+```bash
+docker pull proshian/mle-mines-vs-rocks:latest
+```
+5. Произвести dvс pull и пройти аутентификаицю в google drive, если она не была произведена ранее (OAuth2 ссылка будет сгенерирована автоматически).
 ```bash
 dvc pull
 ```
-
-Произвести аутентификаицю в google drive, если она не была произведена ранее (OAuth2 ссылка будет сгенерирована автоматически).
-
-Далее выполнить docker-compose up:
+6. Выполнить docker-compose up:
 ```bash
 docker-compose up
 ```
