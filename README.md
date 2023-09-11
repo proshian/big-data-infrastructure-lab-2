@@ -21,9 +21,10 @@ dvc init
 dvc remote add -d myremote gdrive://1lh_wUfw88ceVCL04UtT0e0zQCoFpqLxY
 dvc remote modify myremote gdrive_acknowledge_abuse true
 dvc add data/sonar.all-data
+dvc add experiments/mlp_adam_ce.pkl
 dvc push
 
-git add data/sonar.all-data.dvc data/.gitignore
+git add data/sonar.all-data.dvc data/.gitignore experiments/mlp_adam_ce.pkl experiments/.gitignore
 ```
 
 Для CI/CD был создан Google Cloud проект, в котором был создан service account. Service account'у были даны права на редактирование папки, являющейся remote хранилищем. Ключ от service accaunt'а был (будет) записан в github secrets. Более подробно с произведенной настройкой можно ознакомиться в [официальной документации](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive) (разделы `Using a custom Google Cloud project (recommended)` и `Using service accounts`)
