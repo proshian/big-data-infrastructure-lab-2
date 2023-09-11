@@ -1,11 +1,15 @@
 import sys; import os; sys.path.insert(1, os.path.join(os.getcwd(), "src"))
 
 import unittest
+import configparser
 
 import numpy as np
 
 from logger import Logger
 from prepare_data import DataPreparer, ArgsParser
+
+
+CONFIG_PATH = "config.ini"
 
 
 class TestDataPreparer(unittest.TestCase):
@@ -15,6 +19,8 @@ class TestDataPreparer(unittest.TestCase):
         self.logger = logger_getter.get_logger(__name__)
         args_parser = ArgsParser(self.logger)
         self.args = args_parser.get_default_args()
+        self.config = configparser.ConfigParser()
+        self.config.read(CONFIG_PATH)
         self.data_preparer = DataPreparer(
             self.args["orig_data_filename"],
             self.args["save_path"],
@@ -34,15 +40,36 @@ class TestDataPreparer(unittest.TestCase):
         for data in split_data_result:
             self.assertIsInstance(data, np.ndarray)
         
-        # Можно еще проверить типы данных в массивах.
-        # Но я еще не определился, метки будут строками или int'ами.
+        # Можно еще проверить типы данных в массивах:
+        # признаки - float32, метки - str.
 
-    # ! To be implemented
-    # def test_split_data__determinism(self):
-    #     """
-    #     Checks that split_data output files are same after 1st and 2nd runs.
-    #     """
+    def test_split_data__determinism(self):
+        """
+        Checks that split_data output files are same after 1st and 2nd runs.
+        """
+        self.data_preparer.split_data(
+            test_size=self.args["test_size"],
+            random_state=self.args["random_state"])
         
+        split_data_first = (
+            self.config["SPLIT_DATA"]['X_train'],
+            self.config["SPLIT_DATA"]['y_train'],
+            self.config["SPLIT_DATA"]['X_test'],
+            self.config["SPLIT_DATA"]['y_test'])
+
+        self.data_preparer.split_data(
+            test_size=self.args["test_size"],
+            random_state=self.args["random_state"])
+
+        split_data_second = (
+            self.config["SPLIT_DATA"]['X_train'],
+            self.config["SPLIT_DATA"]['y_train'],
+            self.config["SPLIT_DATA"]['X_test'],
+            self.config["SPLIT_DATA"]['y_test'])
+        
+        self.assertTrue(
+            np.all(split_data_first == split_data_second)
+        )
         
 
 if __name__ == "__main__":
