@@ -3,12 +3,10 @@ name: CI CD
 on:
   push:
     branches:
-      - main
       - development
   pull_request:
     branches:
       - main
-      - development
 
 jobs:
   ci:
@@ -71,5 +69,5 @@ jobs:
       - name: Pull images
         run: docker-compose pull
       
-      - name: Run tests
+      - name: Run scripts and tests
         run: docker-compose up --abort-on-container-exit
