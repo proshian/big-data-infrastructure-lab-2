@@ -84,4 +84,4 @@ if __name__ == "__main__":
 
     model = load_model(config, logger)
     
-    functional_test(model)
+    functional_test(model, config, logger)
