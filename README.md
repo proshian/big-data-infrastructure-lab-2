@@ -10,11 +10,11 @@
 
 ## Модель
 
-В качестве модели был выбран многослойный [перцптрон с одним скрытым слоем](./src/model.py).
+В качестве модели был выбран [многослойный перцптрон с одним скрытым слоем](./src/model.py).
 
 Результат обучения:
 ```
-Epochs: 100%|█████████| 80/80 [00:01<00:00, 48.04it/s, epoch 79  train: accuracy: 0.923, f1_score: 0.922, loss: 0.409 val: accuracy: 0.827, f1_score: 0.819, loss: 0.507]
+Epochs: 100%|██████| 80/80 [00:01<00:00, 48.04it/s, epoch 79  train: accuracy: 0.923, f1_score: 0.922, loss: 0.409 val: accuracy: 0.827, f1_score: 0.819, loss: 0.507]
 ```
 
 ## Скрипты
@@ -37,6 +37,15 @@ Unit тесты реализованы с помощью библиотеки `u
 * Детермнированность работы DataPreparer.split_data()
 * Детерменированность forward() модели 
 * Корректность типов данных всех элементов тренировочного и тестового датасетов
+
+
+# Config.ini
+
+В [config.ini](./config.ini) хранятся:
+* Гиперпараметры модели. Записываются в скрипте [train.py](./src/train.py).
+* Пути к разделенным данным. Записываются в результате работы скрипта [prepare_data.py](./src/prepare_data.py). Используются в скрипте [train.py](./src/train.py)
+* Параметры скрипта [prepare_data.py](./src/prepare_data.py). Каждый параметр равен последнему значению, которое переданному через командную строку. Если параметр не был передан, то он берется из config.ini. Если очистить config.ini и не передавать параметры через командную строку, то скрипт [prepare_data.py](./src/prepare_data.py) закончится ошибкой.
+
 
 ## DVC
 
@@ -63,6 +72,8 @@ git add data/sonar.all-data.dvc data/.gitignore experiments/mlp_adam_ce.pkl expe
 
 
 ## CI/CD
+
+CI и CD являются job'ами одного github actions workflow'а. Workflow находится в [.github/workflows/CI CD.yml](./.github/workflows/CI%20CD.yml). Workflow запускается при pull request'е в ветку main и при push'е в ветку development (push в ветку main запрещен). CD job запускается после успешного прохождения CI job.
 
 На этапе CI производится сборка docker образа и его отправка в docker hub. В docker образ не включены файлы, отслеживаемые dvc.
 
