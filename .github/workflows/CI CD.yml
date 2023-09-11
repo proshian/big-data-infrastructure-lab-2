@@ -68,7 +68,7 @@ jobs:
       - name: DVC PULL
         run: dvc pull
         
-      - name: Pull with compose
+      - name: Pull images
         run: docker-compose pull
       
       - name: Run tests

@@ -1,4 +1,4 @@
-# ЛР 1. Классический жизненный цикл разработки моделей машинного обучения
+# Классический жизненный цикл разработки моделей машинного обучения
 
 ![Здесь должен быть статус CI и CD](https://github.com/proshian/big-data-infrastructure-lab-1/actions/workflows/CI%20CD.yml/badge.svg)
 
