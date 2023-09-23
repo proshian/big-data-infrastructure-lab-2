@@ -5,3 +5,4 @@ numpy==1.24.3
 pandas==1.4.1
 torch==2.0.1
 scikit_learn==1.3.0
+greenplum-python==1.0.1
