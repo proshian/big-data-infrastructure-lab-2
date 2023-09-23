@@ -19,7 +19,7 @@ services:
     volumes:
       - ./data:/model/data
     links:
-      - "depends_on:database"
+      - "greenplum:database"
     depends_on:
       greenplum:
         condition: service_healthy
