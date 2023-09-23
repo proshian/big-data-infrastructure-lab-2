@@ -22,6 +22,9 @@ CI/CD pipeline приложить к отчёту.
 3. Ссылка на docker image в DockerHub;
 4. Актуальный дистрибутив модели в zip архиве.
 
+## TODO (План)
+* Добавить happybase в requirements
+
 # Классический жизненный цикл разработки моделей машинного обучения
 
 ![Здесь должен быть статус CI и CD](https://github.com/proshian/big-data-infrastructure-lab-2/actions/workflows/CI%20CD.yml/badge.svg)
@@ -113,7 +116,7 @@ git add data/sonar.all-data.dvc data/.gitignore experiments/mlp_adam_ce.pkl expe
 
 ## CI/CD
 
-CI и CD являются job'ами одного github actions workflow'а. Workflow находится в [.github/workflows/CI CD.yml](./.github/workflows/CI%20CD.yml). Workflow запускается при pull request'е в ветку main и при push'е в ветку development (push в ветку main запрещен). CD job запускается после успешного прохождения CI job.
+CI и CD являются job'ами одного github actions workflow'а. Workflow находится в [.github/workflows/CI CD.yml](./.github/workflows/CI%20CD.yml). Workflow запускается при pull request'е в ветку main и при push'е в ветку development или main. CD job запускается после успешного прохождения CI job.
 
 На этапе CI производится сборка docker образа и его отправка в docker hub. В docker образ не включены файлы, отслеживаемые dvc.
 

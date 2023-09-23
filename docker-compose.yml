@@ -1,18 +1,31 @@
 version: '3.8'
 services:
   app:
+    container_name: app
     build: .
     command: >
-      sh -c "python src/prepare_data.py &&
-             python src/train.py &&
-             python src/functional_test.py &&
-             coverage run src/unit_tests/test_prepare_data.py &&
-             coverage run -a src/unit_tests/test_dataset.py &&
-             coverage run -a src/unit_tests/test_model.py &&
-             coverage report -m
-      "
+      sh -c "python secrets/hbase_playground.py"
     ports:
       - 8000:8000
     image: proshian/mle-mines-vs-rocks:latest
     volumes:
       - ./data:/app/data
+    depends_on:
+      - hbase
+  hbase:
+    image: harisekhon/hbase:latest
+    ports:
+      - 16010:16010  # HBase Web UI
+    environment:
+      - HBASE_REGIONSERVERS=1
+    expose:
+      - 16000  # HBase Master
+      - 16010  # HBase Web UI
+      - 16020  # 
+      - 16030  # HBase Regionserver
+      - 8080
+      - 8085
+      - 9090
+      - 9095
+    hostname:
+      hbase
