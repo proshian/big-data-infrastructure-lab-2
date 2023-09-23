@@ -1,6 +1,7 @@
 version: '3.8'
 services:
-  app:
+
+  model:
     build: .
     command: >
       sh -c "python src/prepare_data.py &&
@@ -11,8 +12,34 @@ services:
              coverage run -a src/unit_tests/test_model.py &&
              coverage report -m
       "
+    # ! I don't think this port will be used
     ports:
       - 8000:8000
     image: proshian/mle-mines-vs-rocks:latest
     volumes:
-      - ./data:/app/data
+      - ./data:/model/data
+    links:
+      - "depends_on:database"
+    depends_on:
+      greenplum:
+        condition: service_healthy
+  
+  greenplum:
+    container_name: database
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=password
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - POSTGRES_DB=$POSTGRES_DBNAME
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DBNAME}" ]
+      # Afaik if we don't specify user and database we will check that server is running.
+      # -U and -d options gaurantee that specific database is available for specific user
+      timeout: 15s
+      retries: 5
