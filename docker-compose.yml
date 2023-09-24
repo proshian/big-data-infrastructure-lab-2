@@ -29,16 +29,16 @@ services:
     image: postgres:latest
     ports:
       - "5432:5432"
-    # volumes:
-    #   - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_HOST_AUTH_METHOD=password
-      - POSTGRES_USER=$POSTGRES_USER
-      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-      - POSTGRES_DB=$POSTGRES_DBNAME
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DBNAME}
     restart: always
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DBNAME" ]
+      test: [ "CMD", "pg_isready"] # , "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DBNAME" ]
       # Afaik if we don't specify user and database we will check that server is running.
       # -U and -d options gaurantee that specific database is available for specific user
       timeout: 30s
