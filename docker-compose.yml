@@ -25,7 +25,7 @@ services:
         condition: service_healthy
   
   greenplum:
-    container_name: database
+    # container_name: database
     image: postgres:latest
     ports:
       - "5432:5432"
