@@ -46,15 +46,15 @@ jobs:
     #   POSTGRES_DBNAME: ${{ secrets.POSTGRES_DBNAME }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Create .env file
         run: |
           touch .env
           echo POSTGRES_USER="${{ secrets.POSTGRES_USER }}" >> .env
           echo POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" >> .env
           echo POSTGRES_DBNAME="${{ secrets.POSTGRES_DBNAME }}" >> .env
-
-      - name: Checkout
-        uses: actions/checkout@v3
         
       - name: Set up Docker
         uses: docker/setup-qemu-action@v2
