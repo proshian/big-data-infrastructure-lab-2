@@ -39,7 +39,8 @@ services:
     restart: always
     healthcheck:
       test: [ "CMD", "pg_isready"] # , "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DBNAME" ]
-      # Afaik if we don't specify user and database we will check that server is running.
-      # -U and -d options gaurantee that specific database is available for specific user
-      timeout: 30s
-      retries: 5
+    #   # Afaik if we don't specify user and database we will check that server is running.
+    #   # -U and -d options gaurantee that specific database is available for specific user
+    #   interval: 10s
+    #   timeout: 40s
+    #   retries: 5
