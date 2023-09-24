@@ -5,8 +5,6 @@ on:
     branches:
       - development
       - main
-      - fix_database_unhealthy
-      - development-debug
   pull_request:
     branches:
       - main

@@ -12,9 +12,6 @@ services:
              coverage run -a src/unit_tests/test_model.py &&
              coverage report -m
       "
-    # ! I don't think this port will be used
-    ports:
-      - 8000:8000
     image: proshian/mle-mines-vs-rocks:latest
     volumes:
       - ./data:/model/data
@@ -38,9 +35,9 @@ services:
       - POSTGRES_DB=${POSTGRES_DBNAME}
     restart: always
     healthcheck:
-      test: [ "CMD", "pg_isready"] # , "-U", "$POSTGRES_USER", "-d", "$POSTGRES_DBNAME" ]
-    #   # Afaik if we don't specify user and database we will check that server is running.
-    #   # -U and -d options gaurantee that specific database is available for specific user
-    #   interval: 10s
-    #   timeout: 40s
-    #   retries: 5
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DBNAME}" ]
+      # Afaik if we don't specify user and database we will check that server is running.
+      # -U and -d options gaurantee that specific database is available for specific user
+      interval: 10s
+      timeout: 30s
+      retries: 5
