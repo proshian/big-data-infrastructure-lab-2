@@ -29,8 +29,10 @@ def get_create_frequencies_statement(col_names) -> str:
     return statement
 
 
-def get_fill_freq_table_statements(X) -> str:
-    statement = "INSERT INTO frequencies VALUES"
+def get_fill_freq_table_statements(X, col_names) -> str:
+    statement = "INSERT INTO frequencies " + \
+        f"({', '.join(col_names)}) " + \
+        "VALUES"
     for i, row in enumerate(X):
         statement += '\n' + "    (" + ", ".join(row) + ")"
         if i != len(X) - 1:
@@ -53,7 +55,7 @@ if __name__ == "__main__":
 
     create_freq_table_statement = get_create_frequencies_statement(col_names)
 
-    fill_freq_statement = get_fill_freq_table_statements(X)
+    fill_freq_statement = get_fill_freq_table_statements(X, col_names)
 
     with open("init.sql", 'w') as f:
         f.write(f"{create_freq_table_statement}\n{CREATE_PRED_TABLE_STATEMENT}\n{fill_freq_statement}")
