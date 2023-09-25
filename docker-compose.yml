@@ -1,7 +1,7 @@
 version: '3.8'
 services:
 
-  model:
+  model_app:
     build: .
     command: >
       sh -c "python src/prepare_data.py &&
@@ -14,7 +14,7 @@ services:
       "
     image: proshian/mle-mines-vs-rocks:latest
     volumes:
-      - ./data:/model/data
+      - ./data:/model_app/data
     links:
       - "greenplum:database"
     depends_on:
