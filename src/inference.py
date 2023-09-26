@@ -4,8 +4,17 @@ and writes the predictions back to the database.
 """
 
 import argparse
+import configparser
 
 import greenplumpython as gp
+
+from model import load_model
+from logger import Logger
+
+
+SHOW_LOG = True
+CONFIG_NAME = 'config.ini'
+MODEL_NAME = 'mlp'
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,13 +30,28 @@ def parse_args() -> argparse.Namespace:
 
 
 if __name__ == "__main__":
+    logger_getter = Logger(SHOW_LOG)
+    logger = logger_getter.get_logger(__name__)
+
+    config = configparser.ConfigParser()
+    config.read(CONFIG_NAME)
+
     args = parse_args()
+
+    logger.debug(f"Creating Database object")
+
     db = gp.Database(host=args.db_host,
                      port=args.db_port,
                      dbname=args.db_name,
                      user=args.db_user,
                      password=args.db_password)
+    
+    logger.debug(f"Created Database object")
+    
 
     X = gp.DataFrame.from_table(args.db_table, db=db)
+
+    model = load_model(config, MODEL_NAME, logger)
+    
 
     print(X.head())
