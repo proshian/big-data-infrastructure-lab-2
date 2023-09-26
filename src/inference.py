@@ -40,15 +40,18 @@ if __name__ == "__main__":
 
     logger.debug(f"Creating Database object")
 
-    db = gp.Database(host=args.db_host,
-                     port=args.db_port,
-                     dbname=args.db_name,
-                     user=args.db_user,
-                     password=args.db_password)
+    params = dict(
+        host=args.db_host,
+        port=args.db_port,
+        dbname=args.db_name,
+        user=args.db_user,
+        password=args.db_password
+    )
+
+    db = gp.Database(params=params)
     
     logger.debug(f"Created Database object")
     
-
     X = gp.DataFrame.from_table(args.db_table, db=db)
 
     model = load_model(config, MODEL_NAME, logger)
