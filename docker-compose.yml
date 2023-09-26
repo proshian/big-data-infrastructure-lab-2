@@ -7,6 +7,7 @@ services:
       sh -c "python src/prepare_data.py &&
              python src/train.py &&
              python src/functional_test.py &&
+             python src/inference.py --db-host database --db-port 5432 --db-user ${POSTGRES_USER} --db-password ${POSTGRES_PASSWORD} --db-name ${POSTGRES_DBNAME} --db-table frequencies &&
              coverage run src/unit_tests/test_prepare_data.py &&
              coverage run -a src/unit_tests/test_dataset.py &&
              coverage run -a src/unit_tests/test_model.py &&
