@@ -64,10 +64,10 @@ CREATE TABLE frequencies (
 
 CREATE TABLE predictions
 (
-    id          SERIAL NOT NULL PRIMARY KEY,
-    frequencies_id INT NOT NULL,
-    prediction  TEXT  NOT NULL,
-    probability FLOAT NOT NULL,
+    prediction_id    SERIAL NOT NULL PRIMARY KEY,
+    frequencies_id   INT NOT NULL,
+    prediction       TEXT  NOT NULL,
+    m_probability    FLOAT NOT NULL,
     FOREIGN KEY (frequencies_id) REFERENCES frequencies (id)
 );
 
