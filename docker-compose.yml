@@ -1,18 +1,44 @@
 version: '3.8'
 services:
-  app:
+
+  model_app:
     build: .
     command: >
       sh -c "python src/prepare_data.py &&
              python src/train.py &&
              python src/functional_test.py &&
+             python src/inference.py --db-host database --db-port 5432 --db-user ${POSTGRES_USER} --db-password ${POSTGRES_PASSWORD} --db-name ${POSTGRES_DBNAME} &&
              coverage run src/unit_tests/test_prepare_data.py &&
              coverage run -a src/unit_tests/test_dataset.py &&
              coverage run -a src/unit_tests/test_model.py &&
              coverage report -m
       "
-    ports:
-      - 8000:8000
     image: proshian/mle-mines-vs-rocks:latest
     volumes:
-      - ./data:/app/data
+      - ./data:/model_app/data
+    links:
+      - "greenplum:database"
+    depends_on:
+      greenplum:
+        condition: service_healthy
+  
+  greenplum:
+    # container_name: database
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=password
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DBNAME}
+    restart: always
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DBNAME}" ]
+      # Afaik if we don't specify user and database we will check that server is running.
+      # -U and -d options gaurantee that specific database is available for specific user
+      interval: 10s
+      timeout: 30s
+      retries: 5

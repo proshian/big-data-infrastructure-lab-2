@@ -1,8 +1,9 @@
 FROM python:3.10-slim
+# FROM proshian/python-with-reqs
 
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /app
+WORKDIR /model_app
 
 # copy all the files to the container
 COPY . .

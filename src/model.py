@@ -1,4 +1,7 @@
+import sys
+
 import torch
+
 
 class MlpSonarModel(torch.nn.Module):
     def __init__(self,  
@@ -16,3 +19,19 @@ class MlpSonarModel(torch.nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
+
+
+def load_model(config, model_name, logger) -> torch.nn.Module:
+    mol_path = config[model_name]["model_optimizer_loss_dict_path"]
+    try:
+        mol = torch.load(mol_path)
+    except KeyError:
+        logger.exception("Error during loading the model. " 
+                         f"Is {model_name} in {model_name}?")
+        sys.exit(1)
+    except FileNotFoundError:
+        logger.exception(f'File {mol_path} is missing')
+        sys.exit(1)
+    model = mol['model']
+    model.eval()
+    return model

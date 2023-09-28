@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - development
+      - main
   pull_request:
     branches:
       - main
@@ -35,13 +36,27 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/mle-mines-vs-rocks
-
+  
   cd:
     needs: ci
     runs-on: ubuntu-latest
+
+    # env:
+    #   POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+    #   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    #   POSTGRES_DBNAME: ${{ secrets.POSTGRES_DBNAME }}
+  
     steps:
+
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo POSTGRES_USER="${{ secrets.POSTGRES_USER }}" >> .env
+          echo POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo POSTGRES_DBNAME="${{ secrets.POSTGRES_DBNAME }}" >> .env
         
       - name: Set up Docker
         uses: docker/setup-qemu-action@v2
@@ -70,4 +85,4 @@ jobs:
         run: docker-compose pull
       
       - name: Run scripts and tests
-        run: docker-compose up --abort-on-container-exit
+        run: docker-compose up --abort-on-container-exit --build --force-recreate

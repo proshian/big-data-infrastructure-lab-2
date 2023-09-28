@@ -12,27 +12,12 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from logger import Logger
 from dataset import SonarDataset
+from model import load_model
 
 
 SHOW_LOG = True
 CONFIG_NAME = 'config.ini'
 MODEL_NAME = 'mlp'
-
-
-def load_model(config, logger) -> torch.nn.Module:
-    mol_path = config[MODEL_NAME]["model_optimizer_loss_dict_path"]
-    try:
-        mol = torch.load(mol_path)
-    except KeyError:
-        logger.exception("Error during loading the model. " 
-                         f"Is {MODEL_NAME} in {CONFIG_NAME}?")
-        sys.exit(1)
-    except FileNotFoundError:
-        logger.exception(f'File {mol_path} is missing')
-        sys.exit(1)
-    model = mol['model']
-    model.eval()
-    return model
 
 
 def functional_test(model, config, logger):
@@ -82,6 +67,6 @@ if __name__ == "__main__":
     config.read(CONFIG_NAME)
 
 
-    model = load_model(config, logger)
+    model = load_model(config, MODEL_NAME, logger)
     
     functional_test(model, config, logger)
