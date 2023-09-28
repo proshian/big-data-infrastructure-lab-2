@@ -1,18 +1,187 @@
-## TODO (Задачи второй лабораторной)
+# Взаимодействие с источниками данных
 
-1. Реализовать взаимодействие сервиса модели и базы данных Apache HBase
-2. Обеспечить процессы аутентификации/авторизации при обращении
-сервиса модели к базе данных в момент отправки результата работы
-модели. В исходном коде не должно быть явно прописаны пары
-логин/пароль, адрес/порт сервера базы данных, токены доступа.
-3. Возможно наполнить базу данных наборами для обучения/валидации
-модели.
-4. Переиспользовать CI pipeline (Jenkins, Team City, Circle CI и др.) для
-сборки docker image и отправки их на DockerHub.
-5. Переиспользовать CD pipeline для запуска контейнеров и проведения
-функционального тестирования по сценарию, запуск должен стартовать
-по требованию или расписанию или как вызов с последнего этапа CI
-pipeline.
+![Здесь должен быть статус CI и CD](https://github.com/proshian/big-data-infrastructure-lab-2/actions/workflows/CI%20CD.yml/badge.svg)
+
+В данном проекте мной проивзодится симуляция эксплуатации модели. Предполагается, что в базу данных
+поступают новые данные (частоты отраженного звука от неклассифицированных объектов) с подводной лодки.
+Сервис модели должен читать данные из БД и записывать туда предсказания для пока не классифициированных объектов.
+
+Все взаимодействие сервиса модели с сервисом БД производится в скрипте [inference.py](./src/inference.py).
+
+В качестве базы данных была использована greenplum.
+
+## Структура БД
+
+Хранится две таблицы:
+1. `frequencies` с полем `id` и 60-ю полями вида `freq_{i}`, где i - порядок частоты.
+2. `predictions` c полями:
+    * `prediction_id`
+    * `frequencies_id` - соответствует `frequencies.id`
+    * `prediction` - Для каждого объекта хранит строку `'M'`, если объект является металлическим цилиндром (мина), `'R'`, если объект является камнем
+    * `m_probability` - Вероятность, что объект является миной
+
+
+## Наполнение базы данных
+Предполагается, что sql запросы на заполнение базы данных поступают из отдельного сервиса, который не представлен в проекте.
+
+Заполнение БД осуществлено в файле `init.sql`. База данных наполняется всем датасетом `./data/sonar.all-data`. Файл `init.sql` генерируется скриптом [./src/create_init_sql.py](./src/create_init_sql.py).
+
+## Взаимодействие c БД
+
+* С помощью библиотеки `greenplumpython` производим `left join exluding inner join` таблиц `frequencies` и `predictions`. Таким образом мы получаем входные данные модели только для необработаных моделью объектов и id этих объектов (`frequencies.id`).
+
+* Предсказываем класс для каждого объекта
+
+* Создаем pd.DataFrame с полями `prediction_id`, `prediction`, `m_probability`
+
+* Производим insert в таблицу `predictions`
+
+## Aутентификация/авторизация
+
+Credentials, используемые в БД: 
+* POSTGRES_DB
+* POSTGRES_PASSWORD
+* POSTGRES_USER
+* POSTGRES_HOST_AUTH_METHOD
+
+Эти данные хранятся в github secrets и передаются в docker-compose.yml как переменные окружения. В `inferece.py` они передаются как аргументы командной строки.
+
+## Результаты функционального тестирования и скрипты конфигурации CI/CD pipeline
+
+Результаты unit тестов:
+```
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+src\dataset.py                           18      2    89%   20, 26
+src\logger.py                            26      0   100%
+src\model.py                              7      0   100%
+src\prepare_data.py                     111     49    56%   50-61, 67-72, 84-110, 169-170, 174-178, 205-208, 219-229
+src\unit_tests\test_dataset.py           25      0   100%
+src\unit_tests\test_model.py             23      0   100%
+src\unit_tests\test_prepare_data.py      29      0   100%
+-------------------------------------------------------------------
+TOTAL                                   239     51    79%
+```
+
+Результат функционального теста [test_0](./tests/test_0.json):
+``` yml
+model: mlp
+model params:
+  input_size: '60'
+  hidden_size: '40'
+  output_size: '2'
+  lr: '0.01'
+  model_optimizer_loss_dict_path: .\experiments\mlp_adam_ce.pkl
+accuracy: '1.0'
+```
+
+Результат функционального теста [test_1](./tests/test_1.json):
+``` yml
+model: mlp
+model params:
+  input_size: '60'
+  hidden_size: '40'
+  output_size: '2'
+  lr: '0.01'
+  model_optimizer_loss_dict_path: .\experiments\mlp_adam_ce.pkl
+accuracy: '1.0'
+```
+
+
+CI / CD представлен в файле [./.github/workflows/CI%20CD.yml](./.github/workflows/CI%20CD.yml):
+
+``` yml
+name: CI CD
+
+on:
+  push:
+    branches:
+      - development
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.11
+
+      - name: Set up Docker
+        uses: docker/setup-qemu-action@v2
+          
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/mle-mines-vs-rocks
+  
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    # env:
+    #   POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+    #   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    #   POSTGRES_DBNAME: ${{ secrets.POSTGRES_DBNAME }}
+  
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo POSTGRES_USER="${{ secrets.POSTGRES_USER }}" >> .env
+          echo POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" >> .env
+          echo POSTGRES_DBNAME="${{ secrets.POSTGRES_DBNAME }}" >> .env
+        
+      - name: Set up Docker
+        uses: docker/setup-qemu-action@v2
+          
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Add google service account key
+        run: echo ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_KEY_BASE64_ENCODED }} | base64 --decode > gsa_key.json
+
+      - name: Install DVC
+        run: pip install dvc dvc-gdrive
+
+      - name: Prepare DVC
+        run: |
+          dvc remote modify myremote gdrive_use_service_account true
+          dvc remote modify myremote --local gdrive_service_account_json_file_path ./gsa_key.json
+
+      - name: DVC PULL
+        run: dvc pull
+        
+      - name: Pull images
+        run: docker-compose pull
+      
+      - name: Run scripts and tests
+        run: docker-compose up --abort-on-container-exit --build --force-recreate
+```
+
+
 6. Результаты функционального тестирования и скрипты конфигурации
 CI/CD pipeline приложить к отчёту.
 
@@ -23,8 +192,6 @@ CI/CD pipeline приложить к отчёту.
 4. Актуальный дистрибутив модели в zip архиве.
 
 # Классический жизненный цикл разработки моделей машинного обучения
-
-![Здесь должен быть статус CI и CD](https://github.com/proshian/big-data-infrastructure-lab-2/actions/workflows/CI%20CD.yml/badge.svg)
 
 Данный проект имеет цель на элементарной задаче потренироваться ставить воспроизводимые эксперименты с моделями машинного обучения. В проекте используется DVC для версионирования данных и моделей и хранения их в удаленном хранилище. Для CI/CD используется github actions. Эксперименты запускаются в docker контейнере, что позволяет легко переносить их на другие машины и воспроизводить эксперименты в одинаковых условиях.
 
