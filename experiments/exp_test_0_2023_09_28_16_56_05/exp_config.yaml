@@ -1,0 +1,8 @@
+model: mlp
+model params:
+  input_size: '60'
+  hidden_size: '40'
+  output_size: '2'
+  lr: '0.01'
+  model_optimizer_loss_dict_path: .\experiments\mlp_adam_ce.pkl
+accuracy: '1.0'

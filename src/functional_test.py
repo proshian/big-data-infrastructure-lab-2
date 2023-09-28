@@ -39,7 +39,6 @@ def functional_test(model, config, logger):
                 probs = probs.numpy()
             preds = np.argmax(probs, axis=1)
             accuracy = accuracy_score(preds, y_list)
-            print(f"{MODEL_NAME} passed test {test}")
             
             logger.info(
                 f"{MODEL_NAME} passed test {test}")
