@@ -15,16 +15,16 @@ CONFIG_PATH = "config.ini"
 class TestDataPreparer(unittest.TestCase):
 
     def setUp(self) -> None:
-        logger_getter = Logger(show=True)
-        self.logger = logger_getter.get_logger(__name__)
-        args_parser = ArgsParser(self.logger)
+        logger_getter = Logger(show=False)
+        self.dummy_logger = logger_getter.get_logger(__name__)
+        args_parser = ArgsParser(self.dummy_logger)
         self.args = args_parser.get_default_args()
         self.config = configparser.ConfigParser()
         self.config.read(CONFIG_PATH)
         self.data_preparer = DataPreparer(
             self.args["orig_data_filename"],
             self.args["save_path"],
-            self.logger)
+            self.dummy_logger)
 
     def test_split_data__type(self):
         """
